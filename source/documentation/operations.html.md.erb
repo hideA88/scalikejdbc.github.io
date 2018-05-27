@@ -207,6 +207,27 @@ withSQL {
 sql"select id from member where id = $memberId" // will bind `memberId` as an object
 ```
 
+If you want to insert data into JSON(JSONB) type column, you need define json type parameter binder. (for postgresql example)
+
+```scala
+
+sql"create table json_example (id bigint, data jsonb)").execute.apply()
+
+val jsonStr = "{\"id\": 1}"
+val jsonBinder = ParameterBinder(
+  value = jsonStr,
+  binder = { (ps, idx) =>
+    val pgObject = new PGobject()
+    pgObject.setType("jsonb")
+    pgObject.setValue(jsonStr)
+    ps.setObject(idx, pgObject)
+  }
+)
+
+sql"insert into json_example (data) values (${jsonBinder})").update.apply()
+
+```
+
 <hr/>
 #### Using TypeBinder
 <hr/>
